@@ -33,7 +33,12 @@ export default function Quiz() {
       setShowAnswers(false);
     } catch (error) {
       console.error(error);
-      alert('Failed to generate quiz. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes("No Gemini API key found")) {
+        alert("AI functionality requires a Gemini API key. Please check your Settings page.");
+      } else {
+        alert('Failed to generate quiz. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

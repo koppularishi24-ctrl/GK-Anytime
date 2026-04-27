@@ -1,14 +1,37 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+function getAI() {
+  const userKey = typeof window !== 'undefined' ? localStorage.getItem('user_gemini_api_key') : null;
+  const apiKey = userKey || process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("No Gemini API key found. Please add one in the Settings page or configuration.");
+  }
+
+  // Create a new client if the key changed or if no client exists
+  if (!aiClient || (aiClient && (aiClient as any).apiKey !== apiKey)) {
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+
+  return aiClient;
+}
 
 export async function generateDateGK(dateString: string) {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Provide an exhaustive and comprehensive list of events that happened on ${dateString}. This data is for students preparing for competitive exams like SSC and UPSC, so it must be highly relevant for General Knowledge (GK). Include a strong focus on both Indian National events and International events. Include a wide variety of categories such as: Indian History & Polity, International Relations, Economic & Financial, Science & Space Technology, Defense & Military, High-Profile Crimes & Scandals (e.g., major arrests, court verdicts, international criminal cases like Jeffrey Epstein, financial frauds), Sports, Important Births & Deaths, and Arts & Culture.`,
+      contents: `Provide an exhaustive and comprehensive list of significant events that occurred STRICTLY on the specific date and year: ${dateString}. 
+
+CRITICAL INSTRUCTIONS:
+1. FOCUS ONLY ON THE SELECTED YEAR: If I select a date in 1975, show events from 1975. If I select a date in 2026, show events from 2026. 
+2. DO NOT provide historical events from different years (e.g., if the year is 2026, don't show 1986 events) unless there is absolutely no news or events for that specific year, in which case you must clearly label them as "Historical Context for this Day".
+3. For current/recent dates (like in 2026), include major news, scientific achievements, sports results, and international developments that happened on that exact day.
+4. This data is for students preparing for competitive exams like SSC and UPSC. Include Indian and International events across categories like Polity, Economy, Science, Defense, and Crime.`,
       config: {
-        systemInstruction: "You are an expert historian and GK educator for competitive exams. Provide a massive, comprehensive list of factual, significant events for the requested date (aim for 20-30+ events). Prioritize events important for Indian and Global General Knowledge. Explicitly include major historical milestones, government acts, treaties, scientific discoveries, and major criminal/legal incidents. For each event, provide a short, specific category name (e.g., 'Indian Polity', 'International Crime', 'Science & Tech') and a concise, factual description.",
+        systemInstruction: "You are a precise historian and current affairs expert. Your task is to provide events that happened EXACTLY on the day and year requested. Accuracy is paramount. Use your internal knowledge and logic to identify significant occurrences for that specific date. If the date is very recent or in the future, provide scheduled events or major anticipated milestones. For each event, provide a specific category and a concise, factual description.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -36,15 +59,18 @@ export async function generateDateGK(dateString: string) {
 
 export async function generateQuiz(month: string, year: string) {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Generate a 20-question General Knowledge quiz based on real, verified significant events that happened in ${month} ${year}. The target audience is students preparing for Indian competitive exams like SSC, Banking, and UPSC. Ensure a balanced mix of Indian National Current Affairs, International Affairs, Economy, Science & Tech, Defense, Sports, and Major Legal/Criminal verdicts.
+      contents: `Generate a 20-question General Knowledge quiz based on real, verified significant events that occurred STRICTLY in ${month} ${year}. 
 
 CRITICAL INSTRUCTIONS:
-1. DO NOT hallucinate. Only use real, historically accurate events that actually occurred in ${month} ${year}.
-2. Provide clear, concise questions and their corresponding factual answers.`,
+1. FOCUS ONLY ON THE SELECTED YEAR: If I select ${year}, all questions MUST be about events that happened in ${year}. 
+2. DO NOT hallucinate. Only use real events. If the date is in the future (like 2026), focus on scheduled major events, scientific milestones, or international agreements set for that time.
+3. The target audience is students preparing for Indian competitive exams like SSC, Banking, and UPSC. Ensure a balanced mix of Indian National Current Affairs, International Affairs, Economy, Science & Tech, Defense, Sports, and Major Legal/Criminal verdicts.
+4. Provide clear, concise questions and their corresponding factual answers.`,
       config: {
-        systemInstruction: "You are an expert quizmaster for competitive exams. Create 20 challenging, 100% factually accurate open-ended questions and provide their correct answers.",
+        systemInstruction: "You are an expert quizmaster for competitive exams. Create 20 challenging, 100% factually accurate open-ended questions and provide their correct answers. You MUST ensure every question pertains to the specific month and year requested.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,

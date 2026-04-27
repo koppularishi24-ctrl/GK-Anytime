@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { BookOpen, Calendar, BrainCircuit, LogIn, LogOut, Menu, X, Moon, Sun } from 'lucide-react';
+import { BookOpen, Calendar, BrainCircuit, LogIn, LogOut, Menu, X, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 
@@ -24,6 +24,7 @@ export default function AppLayout() {
     { name: 'Home', path: '/', icon: BookOpen },
     { name: 'Date Explorer', path: '/explorer', icon: Calendar },
     { name: 'GK Quiz', path: '/quiz', icon: BrainCircuit },
+    { name: 'Settings', path: '/settings', icon: SettingsIcon },
   ];
 
   return (
@@ -148,6 +149,7 @@ export default function AppLayout() {
           </div>
           
           <div className="flex space-x-6 text-sm text-muted-foreground">
+            <Link to="/settings" className="hover:text-foreground transition-colors">Settings</Link>
             <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact / Support</Link>

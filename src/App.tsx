@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import DateExplorer from './pages/DateExplorer';
 import Quiz from './pages/Quiz';
 import Auth from './pages/Auth';
+import Settings from './pages/Settings';
 import About from './pages/About';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="explorer" element={<DateExplorer />} />
             <Route path="quiz" element={<Quiz />} />
             <Route path="auth" element={<Auth />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="about" element={<About />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="contact" element={<Contact />} />

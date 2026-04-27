@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Calendar, BrainCircuit, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, BrainCircuit, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -52,6 +52,23 @@ export default function Home() {
               Daily GK Practice
             </div>
           </div>
+
+          {/* API Key Instructions for self-hosters */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="mt-12 p-6 rounded-xl border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10 dark:border-yellow-900/30 text-left max-w-2xl mx-auto"
+          >
+            <h3 className="text-sm font-bold text-yellow-800 dark:text-yellow-400 uppercase tracking-wider mb-2 flex items-center">
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Developer Note: API Key Required
+            </h3>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              To make this app work, you must provide your own <strong>Gemini API Key</strong>. 
+              Add it as an environment variable named <code className="bg-yellow-200/50 dark:bg-yellow-800/30 px-1 rounded">GEMINI_API_KEY</code> in your Vercel or local <code className="bg-yellow-200/50 dark:bg-yellow-800/30 px-1 rounded">.env</code> file.
+            </p>
+          </motion.div>
         </motion.div>
       </section>
 

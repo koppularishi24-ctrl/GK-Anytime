@@ -39,13 +39,18 @@ export default function DateExplorer() {
     
     setLoading(true);
     try {
-      const formattedDate = format(parsedDate, 'MMMM do, yyyy');
+      const formattedDate = format(parsedDate, 'EEEE, MMMM do, yyyy');
       const result = await generateDateGK(formattedDate);
       setData(result);
       setExploredDate(parsedDate);
     } catch (error) {
       console.error(error);
-      alert('Failed to generate content. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes("No Gemini API key found")) {
+        alert("AI functionality requires a Gemini API key. Please check your Settings (or add it to your environment).");
+      } else {
+        alert('Failed to generate content. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -119,17 +124,36 @@ export default function DateExplorer() {
             </CardHeader>
             <CardContent className="pt-6">
               {data.length > 0 ? (
-                <ul className="space-y-6">
-                  {data.map((event, index) => (
-                    <li key={index} className="flex items-start text-lg">
-                      <span className="mr-3 text-primary mt-1.5 text-xl">•</span>
-                      <span className="leading-relaxed">
-                        <strong className="font-bold text-foreground">{event.category}:</strong>{' '}
-                        <span className="text-muted-foreground">{event.description}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-8">
+                  <ul className="space-y-6">
+                    {data.map((event, index) => (
+                      <li key={index} className="flex items-start text-lg">
+                        <span className="mr-3 text-primary mt-1.5 text-xl">•</span>
+                        <span className="leading-relaxed">
+                          <strong className="font-bold text-foreground">{event.category}:</strong>{' '}
+                          <span className="text-muted-foreground">{event.description}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <div className="pt-6 border-t">
+                    <p className="text-muted-foreground mb-4 font-medium flex items-center gap-2">
+                       Want to explore more visually?
+                    </p>
+                    <a 
+                      href={`https://www.youtube.com/results?search_query=all+events+on+this+day+${format(exploredDate, 'MMMM+do')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
+                    >
+                      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                      </svg>
+                      Watch Events of This Day on YouTube
+                    </a>
+                  </div>
+                </div>
               ) : (
                 <p className="text-muted-foreground italic text-center py-8">No major events found for this specific date.</p>
               )}
