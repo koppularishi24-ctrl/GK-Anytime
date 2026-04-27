@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Skeleton } from '../components/ui/skeleton';
-import { generateDateGK } from '../lib/gemini';
+import { generateDateGK, hasApiKey } from '../lib/gemini';
 import { format, isValid, parseISO } from 'date-fns';
 import { Copy, Check, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,6 +24,11 @@ export default function DateExplorer() {
   const handleExplore = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date) return;
+
+    if (!hasApiKey()) {
+      alert("Please add your Gemini API Key in Settings to explore events.");
+      return;
+    }
     
     // Parse date properly to avoid timezone shifts
     const parts = date.split('-');
@@ -41,8 +46,15 @@ export default function DateExplorer() {
     try {
       const formattedDate = format(parsedDate, 'EEEE, MMMM do, yyyy');
       const result = await generateDateGK(formattedDate);
-      setData(result);
-      setExploredDate(parsedDate);
+      
+      if (result.length === 0) {
+        setData([]);
+        setExploredDate(parsedDate);
+        // Note: The UI already handles data.length === 0 by showing a message
+      } else {
+        setData(result);
+        setExploredDate(parsedDate);
+      }
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : '';

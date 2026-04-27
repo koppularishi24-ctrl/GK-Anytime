@@ -5,13 +5,14 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Key, Save, Trash2, ExternalLink, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { STORAGE_KEY } from '../lib/gemini';
 
 export default function Settings() {
   const [apiKey, setApiKey] = useState('');
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('user_gemini_api_key');
+    const savedKey = localStorage.getItem(STORAGE_KEY);
     if (savedKey) {
       setApiKey(savedKey);
       setIsSaved(true);
@@ -20,14 +21,16 @@ export default function Settings() {
 
   const handleSave = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('user_gemini_api_key', apiKey.trim());
+      localStorage.setItem(STORAGE_KEY, apiKey.trim());
       setIsSaved(true);
       alert('API Key saved locally. Your browser will now use this key for AI features.');
+    } else {
+      alert('Please enter a valid API key.');
     }
   };
 
   const handleClear = () => {
-    localStorage.removeItem('user_gemini_api_key');
+    localStorage.removeItem(STORAGE_KEY);
     setApiKey('');
     setIsSaved(false);
     alert('API Key removed.');

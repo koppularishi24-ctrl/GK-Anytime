@@ -3,7 +3,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
-import { generateQuiz } from '../lib/gemini';
+import { generateQuiz, hasApiKey } from '../lib/gemini';
 import { RefreshCw, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -25,6 +25,11 @@ export default function Quiz() {
   const handleStartQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!month || !year) return;
+
+    if (!hasApiKey()) {
+      alert("Please add your Gemini API Key in Settings to generate a quiz.");
+      return;
+    }
     
     setLoading(true);
     try {

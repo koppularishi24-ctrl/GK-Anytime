@@ -2,16 +2,23 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 let aiClient: GoogleGenAI | null = null;
 
+export const STORAGE_KEY = 'gk_explorer_gemini_api_key';
+
+export function hasApiKey() {
+  if (typeof window === 'undefined') return false;
+  const key = localStorage.getItem(STORAGE_KEY);
+  return !!key && key.trim().length > 0;
+}
+
 function getAI() {
-  const userKey = typeof window !== 'undefined' ? localStorage.getItem('user_gemini_api_key') : null;
-  const apiKey = userKey || process.env.GEMINI_API_KEY;
+  const apiKey = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
 
   if (!apiKey) {
-    throw new Error("No Gemini API key found. Please add one in the Settings page or configuration.");
+    throw new Error("No Gemini API key found. Please add one in the Settings page.");
   }
 
   // Create a new client if the key changed or if no client exists
-  if (!aiClient || (aiClient && (aiClient as any).apiKey !== apiKey)) {
+  if (!aiClient || (aiClient as any).apiKey !== apiKey) {
     aiClient = new GoogleGenAI({ apiKey });
   }
 
@@ -21,25 +28,29 @@ function getAI() {
 export async function generateDateGK(dateString: string) {
   try {
     const ai = getAI();
+    const parts = dateString.split(',');
+    const requestedYear = parts[parts.length - 1]?.trim() || '';
+    
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Provide an exhaustive and comprehensive list of significant events that occurred STRICTLY on the specific date and year: ${dateString}. 
+      contents: `Find and list major international and national news, scientific milestones, scheduled geopolitical events, and official observances that occur STRICTLY and ONLY on: ${dateString}.
 
-CRITICAL INSTRUCTIONS:
-1. FOCUS ONLY ON THE SELECTED YEAR: If I select a date in 1975, show events from 1975. If I select a date in 2026, show events from 2026. 
-2. DO NOT provide historical events from different years (e.g., if the year is 2026, don't show 1986 events) unless there is absolutely no news or events for that specific year, in which case you must clearly label them as "Historical Context for this Day".
-3. For current/recent dates (like in 2026), include major news, scientific achievements, sports results, and international developments that happened on that exact day.
-4. This data is for students preparing for competitive exams like SSC and UPSC. Include Indian and International events across categories like Polity, Economy, Science, Defense, and Crime.`,
+SEARCH REQUIREMENTS:
+1. USE GOOGLE SEARCH: Find real, verified events that actually occurred or are strictly scheduled for this specific date AND year: ${requestedYear}.
+2. NO HISTORICAL "ON THIS DAY": I do not want events from any year other than ${requestedYear}. If you find a historical fact for a different year, DISCARD IT.
+3. FOCUS ON COMPETITIVE EXAM GK: Include developments in Science & Tech, International Relations, Economy, and Polity that a student would find in a current affairs magazine for exactly this day.
+4. If no specific news or major scheduled events exist for this precise date and year, return an empty list [].`,
       config: {
-        systemInstruction: "You are a precise historian and current affairs expert. Your task is to provide events that happened EXACTLY on the day and year requested. Accuracy is paramount. Use your internal knowledge and logic to identify significant occurrences for that specific date. If the date is very recent or in the future, provide scheduled events or major anticipated milestones. For each event, provide a specific category and a concise, factual description.",
+        systemInstruction: "You are a professional current affairs researcher. You use Google Search to provide 100% accurate, year-specific data for the requested date. You NEVER provide historical context from other years. You focus on news, scheduled milestones, and scientific developments that happened EXACTLY in the year provided.",
+        tools: [{ googleSearch: {} } as any],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              category: { type: Type.STRING, description: "The category of the event (e.g., Indian Polity, International Crime, Science, Sports, etc.)" },
-              description: { type: Type.STRING, description: "The description of the event" }
+              category: { type: Type.STRING },
+              description: { type: Type.STRING }
             },
             required: ["category", "description"]
           }
@@ -62,15 +73,16 @@ export async function generateQuiz(month: string, year: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Generate a 20-question General Knowledge quiz based on real, verified significant events that occurred STRICTLY in ${month} ${year}. 
+      contents: `Search for major national and international news, scientific breakthroughs, and economic developments that occurred STRICTLY in ${month} ${year}. 
 
-CRITICAL INSTRUCTIONS:
-1. FOCUS ONLY ON THE SELECTED YEAR: If I select ${year}, all questions MUST be about events that happened in ${year}. 
-2. DO NOT hallucinate. Only use real events. If the date is in the future (like 2026), focus on scheduled major events, scientific milestones, or international agreements set for that time.
-3. The target audience is students preparing for Indian competitive exams like SSC, Banking, and UPSC. Ensure a balanced mix of Indian National Current Affairs, International Affairs, Economy, Science & Tech, Defense, Sports, and Major Legal/Criminal verdicts.
-4. Provide clear, concise questions and their corresponding factual answers.`,
+QUIZ GENERATION RULES:
+1. USE GOOGLE SEARCH: Verify events from major news outlets (PIB, Reuters, The Hindu, etc.) for exactly this period.
+2. NO HISTORY: Every single question MUST be about an event from ${year}. 
+3. EXAM LEVEL: Questions must be suitable for SSC, UPSC, and Banking exams.
+4. If the month is in the future, base questions on officially confirmed schedules (e.g., specific rocket launch dates, international summits already announced).`,
       config: {
-        systemInstruction: "You are an expert quizmaster for competitive exams. Create 20 challenging, 100% factually accurate open-ended questions and provide their correct answers. You MUST ensure every question pertains to the specific month and year requested.",
+        systemInstruction: "You are a specialized quiz master for civil service exams. You use Google Search to find real events for the specific month and year requested. You never use historical data from other years. You provide 20 factual questions with accurate answers.",
+        tools: [{ googleSearch: {} } as any],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
