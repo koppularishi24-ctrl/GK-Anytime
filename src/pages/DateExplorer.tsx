@@ -55,13 +55,16 @@ export default function DateExplorer() {
         setData(result);
         setExploredDate(parsedDate);
       }
-    } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : '';
-      if (errorMessage.includes("No Gemini API key found")) {
-        alert("AI functionality requires a Gemini API key. Please check your Settings (or add it to your environment).");
+    } catch (error: any) {
+      console.error("Exploration Error:", error);
+      const errorMessage = error?.message || String(error);
+      
+      if (errorMessage.includes("API key") || errorMessage.includes("401") || errorMessage.includes("invalid")) {
+        alert("Your Gemini API Key is missing, invalid, or expired. Please check your Settings page and ensure you have a valid key from Google AI Studio.");
+      } else if (errorMessage.includes("quota") || errorMessage.includes("429")) {
+        alert("Daily AI quota reached for this API key. Please check your usage at Google AI Studio or try again later.");
       } else {
-        alert('Failed to generate content. Please try again.');
+        alert(`Failed to generate content: ${errorMessage.substring(0, 100)}... Please try again.`);
       }
     } finally {
       setLoading(false);

@@ -36,13 +36,16 @@ export default function Quiz() {
       const result = await generateQuiz(month, year);
       setQuestions(result);
       setShowAnswers(false);
-    } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : '';
-      if (errorMessage.includes("No Gemini API key found")) {
-        alert("AI functionality requires a Gemini API key. Please check your Settings page.");
+    } catch (error: any) {
+      console.error("Quiz Error:", error);
+      const errorMessage = error?.message || String(error);
+      
+      if (errorMessage.includes("API key") || errorMessage.includes("401") || errorMessage.includes("invalid")) {
+        alert("Your Gemini API Key is missing or invalid. Please update it in the Settings page to generate quizzes.");
+      } else if (errorMessage.includes("quota") || errorMessage.includes("429")) {
+        alert("AI rate limit reached. Please try again in a moment or check your API quota.");
       } else {
-        alert('Failed to generate quiz. Please try again.');
+        alert(`Failed to generate quiz: ${errorMessage.substring(0, 100)}...`);
       }
     } finally {
       setLoading(false);
