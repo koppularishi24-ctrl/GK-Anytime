@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { BookOpen, Calendar, BrainCircuit, LogIn, LogOut, Menu, X, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
+import { BookOpen, Calendar, BrainCircuit, LogIn, LogOut, Menu, X, Moon, Sun, Settings as SettingsIcon, Video, Newspaper } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 
@@ -24,6 +24,8 @@ export default function AppLayout() {
     { name: 'Home', path: '/', icon: BookOpen },
     { name: 'Date Explorer', path: '/explorer', icon: Calendar },
     { name: 'GK Quiz', path: '/quiz', icon: BrainCircuit },
+    { name: 'Category News', path: '/category-news', icon: Newspaper },
+    { name: 'Videos', path: '/videos', icon: Video },
     { name: 'Settings', path: '/settings', icon: SettingsIcon },
   ];
 

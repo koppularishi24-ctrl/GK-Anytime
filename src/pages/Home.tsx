@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Calendar, BrainCircuit, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, BrainCircuit, ArrowRight, CheckCircle2, AlertCircle, Video, Newspaper } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -34,10 +34,10 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link to="/quiz" className="w-full sm:w-auto">
+            <Link to="/category-news" className="w-full sm:w-auto">
               <Button variant="outline" size="lg" className="w-full text-lg h-12 px-8">
-                Play GK Quiz
-                <BrainCircuit className="ml-2 h-5 w-5" />
+                Category News
+                <Newspaper className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>
@@ -74,54 +74,53 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="w-full py-20 px-4">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <Calendar className="h-6 w-6" />
-            </div>
-            <h2 className="text-3xl font-bold">Date-Based GK Explorer</h2>
-            <p className="text-lg text-muted-foreground">
-              Select any date and instantly get a structured overview of important events categorized into Political, Legal, International, Economic, Science, and more.
-            </p>
-            <ul className="space-y-3">
-              {['Concise factual bullet points', 'Clearly separated categories', 'AI-powered historical accuracy'].map((feature, i) => (
-                <li key={i} className="flex items-center text-muted-foreground">
-                  <CheckCircle2 className="mr-2 h-5 w-5 text-primary" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="bg-card border rounded-2xl p-8 shadow-sm"
-          >
-            <div className="space-y-4">
-              <div className="h-8 w-1/3 bg-muted rounded animate-pulse"></div>
-              <div className="space-y-2">
-                <div className="h-4 w-full bg-muted rounded animate-pulse"></div>
-                <div className="h-4 w-5/6 bg-muted rounded animate-pulse"></div>
-                <div className="h-4 w-4/6 bg-muted rounded animate-pulse"></div>
-              </div>
-              <div className="pt-4 space-y-2">
-                <div className="h-8 w-1/4 bg-muted rounded animate-pulse"></div>
-                <div className="h-4 w-full bg-muted rounded animate-pulse"></div>
-                <div className="h-4 w-5/6 bg-muted rounded animate-pulse"></div>
-              </div>
-            </div>
-          </motion.div>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <FeatureCard 
+            icon={<Calendar className="h-6 w-6" />}
+            title="Date Explorer"
+            description="Discover historical events for any specific day in history."
+            link="/explorer"
+          />
+          <FeatureCard 
+            icon={<BrainCircuit className="h-6 w-6" />}
+            title="GK Quiz"
+            description="Test your knowledge with AI-generated month-specific quizzes."
+            link="/quiz"
+          />
+          <FeatureCard 
+            icon={<Newspaper className="h-6 w-6" />}
+            title="Category News"
+            description="Real-time news highlights for today categorized by your interests."
+            link="/category-news"
+          />
+          <FeatureCard 
+            icon={<Video className="h-6 w-6" />}
+            title="Video Library"
+            description="Curated high-quality video content for GK and Current Affairs."
+            link="/videos"
+          />
         </div>
       </section>
     </div>
+  );
+}
+
+function FeatureCard({ icon, title, description, link }: { icon: any, title: string, description: string, link: string }) {
+  return (
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className="p-6 rounded-2xl border bg-card hover:border-primary/50 transition-all flex flex-col h-full"
+    >
+      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p className="text-muted-foreground mb-6 flex-1">{description}</p>
+      <Link to={link}>
+        <Button variant="ghost" className="p-0 h-auto font-bold text-primary hover:text-primary hover:bg-transparent">
+          Get Started <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Link>
+    </motion.div>
   );
 }

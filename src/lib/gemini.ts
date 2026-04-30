@@ -28,12 +28,22 @@ function getAI() {
 }
 
 export async function generateDateGK(dateString: string) {
+  const cacheKey = `gk_date_${dateString}`;
+  const cached = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
   try {
     const ai = getAI();
     const parts = dateString.split(',');
     const requestedYear = parts[parts.length - 1]?.trim() || '';
     
-    // We removed the googleSearch tool to avoid quota issues and technical conflicts with responseSchema
+    // We use googleSearch to provide real-time updates for today's news
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `List major international and national news, scientific milestones, and official observances that occurred EXCLUSIVELY on: ${dateString}.
@@ -44,8 +54,9 @@ STRICT ACCURACY RULES:
 3. CONTENT TYPE: Focus on Science & Tech, Politics, Economy, and International Affairs that are important for competitive exams.
 4. If no major events are known for this specific day and year, return an empty list [].`,
       config: {
-        systemInstruction: "You are a professional GK researcher. You provide factual, year-specific events for the exact date requested. You do not provide history from other years. You use your extensive training data to identify news and milestones for the specific day and year provided.",
+        systemInstruction: "You are a professional GK researcher. You provide factual, year-specific events for the exact date requested. You do not provide history from other years. Use Google Search to find specific news and events for the requested date.",
         responseMimeType: "application/json",
+        tools: [{ googleSearch: {} }],
         responseSchema: {
           type: Type.ARRAY,
           items: {
@@ -61,11 +72,18 @@ STRICT ACCURACY RULES:
     });
     
     if (response.text) {
-      return JSON.parse(response.text);
+      const data = JSON.parse(response.text);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      }
+      return data;
     }
     return [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating GK content:", error);
+    if (error.message?.includes('RESOURCE_EXHAUSTED') || error.message?.includes('429')) {
+      throw new Error("Search quota reached. Please wait a few minutes or try another category later.");
+    }
     throw error;
   }
 }
@@ -105,6 +123,73 @@ QUIZ GENERATION RULES:
     return [];
   } catch (error) {
     console.error("Error generating quiz:", error);
+    throw error;
+  }
+}
+
+export async function generateCategoryNews(category: string, dateString: string) {
+  const cacheKey = `gk_category_${category}_${dateString}`;
+  const cached = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
+  try {
+    const ai = getAI();
+    let categorySpecificPrompt = "";
+    
+    if (category === "Dark Web Crimes") {
+      categorySpecificPrompt = "\nSPECIAL FOCUS: Specifically focus on disturbing and serious reports regarding dark web crimes. This includes chilling accounts of cyber-criminal syndicates, high-profile cases involving serious predators (including pedophiles), and mysterious or serious crimes that involve dangerous criminal psychology. The tone should be serious and investigative.";
+    } else if (category === "Horror") {
+      categorySpecificPrompt = "\nSPECIAL FOCUS: Provide deeply disturbing and mysterious news or documented facts related to the paranormal. Focus on chilling accounts of ghosts, evil spirits, demonology, and unsettling objects like the Busby Stoop Chair. Include serious, documented supernatural reports and mysterious occurrences that add a sense of real-world horror.";
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Provide a comprehensive list of news developments and key events specifically for the category: "${category}" that occurred on ${dateString}.${categorySpecificPrompt}
+
+REQUIREMENTS:
+1. FOCUS: Only include items related to ${category}.
+2. DATE: Events must have happened exactly on ${dateString}.
+3. DEPTH: Provide detailed, factual summaries.
+4. SOURCE: For each item, you MUST provide a direct, valid URL to the news source reporting this event.
+5. If no specific news exists for this category on this day, return an empty list [].`,
+      config: {
+        systemInstruction: "You are a professional news analyst. Use Google Search to find and extract the latest, specific news developments for the requested category and date. Ensure facts are verified and every news item has a primary source URL.",
+        responseMimeType: "application/json",
+        tools: [{ googleSearch: {} }],
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              headline: { type: Type.STRING },
+              summary: { type: Type.STRING },
+              url: { type: Type.STRING, description: "The direct URL to the news source" }
+            },
+            required: ["headline", "summary", "url"]
+          }
+        }
+      }
+    });
+    
+    if (response.text) {
+      const data = JSON.parse(response.text);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      }
+      return data;
+    }
+    return [];
+  } catch (error: any) {
+    console.error("Error generating category news:", error);
+    if (error.message?.includes('RESOURCE_EXHAUSTED') || error.message?.includes('429')) {
+      throw new Error("Search quota reached. Please wait a few minutes or try another category later.");
+    }
     throw error;
   }
 }

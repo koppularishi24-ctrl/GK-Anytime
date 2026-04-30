@@ -9,6 +9,8 @@ import AppLayout from './components/layout/AppLayout';
 import Home from './pages/Home';
 import DateExplorer from './pages/DateExplorer';
 import Quiz from './pages/Quiz';
+import CategoryNews from './pages/CategoryNews';
+import Videos from './pages/Videos';
 import Auth from './pages/Auth';
 import Settings from './pages/Settings';
 import About from './pages/About';
@@ -24,6 +26,8 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="explorer" element={<DateExplorer />} />
             <Route path="quiz" element={<Quiz />} />
+            <Route path="category-news" element={<CategoryNews />} />
+            <Route path="videos" element={<Videos />} />
             <Route path="auth" element={<Auth />} />
             <Route path="settings" element={<Settings />} />
             <Route path="about" element={<About />} />
